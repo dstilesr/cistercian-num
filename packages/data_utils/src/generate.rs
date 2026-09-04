@@ -22,6 +22,7 @@ pub fn approx_equal(a: f32, b: f32) -> bool {
 }
 
 /// Positions in which a digit can be added to the numeral.
+#[derive(Debug, Clone, Copy)]
 pub enum DigitPosition {
     Ones,
     Tens,
@@ -145,6 +146,23 @@ pub fn draw_digit(
         0 => Ok(()),
         1 => Ok(draw_1(img, params, position)),
         2 => Ok(draw_2(img, params, position)),
+        6 => Ok(draw_6(img, params, position)),
+        7 => {
+            draw_1(img, params, position);
+            draw_6(img, params, position);
+            Ok(())
+        }
+        8 => {
+            draw_2(img, params, position);
+            draw_6(img, params, position);
+            Ok(())
+        }
+        9 => {
+            draw_1(img, params, position);
+            draw_2(img, params, position);
+            draw_6(img, params, position);
+            Ok(())
+        }
         _ => Err(CistercianError::Fail),
     }
 }
@@ -179,6 +197,23 @@ fn draw_2(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) 
         (outx, inx - params.radius())
     } else {
         (inx + params.radius(), outx)
+    };
+    img.slice_mut(s![up..down, l..r]).fill(0.0);
+}
+
+/// Draw digit 5 in the given position
+fn draw_6(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) {
+    let (inx, outx, iny, outy) = params.digit_box(position);
+    let (up, down) = if iny > outy {
+        (outy + params.thickness, iny)
+    } else {
+        (iny, outy - params.thickness)
+    };
+
+    let (l, r) = if inx > outx {
+        (outx, outx + params.thickness)
+    } else {
+        (outx - params.thickness, outx)
     };
     img.slice_mut(s![up..down, l..r]).fill(0.0);
 }
