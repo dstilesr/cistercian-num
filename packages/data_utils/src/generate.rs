@@ -7,7 +7,7 @@
 use crate::CResult;
 
 use super::CistercianError;
-use ndarray::Array2;
+use ndarray::{Array2, s};
 
 /// Relative tolerance for comparing floats
 const RTOL: f32 = 1e-9;
@@ -65,28 +65,56 @@ impl ImageParams {
         (self.thickness / 2).max(1)
     }
 
-    /// Return the middle height for drawing a digit in the given position
-    pub fn middle_height(&self, position: DigitPosition) -> usize {
+    /// Return the bounds of the box in which a digit is to be drawn on the image. Gives
+    /// the bounds as (innermost x, outer x, innermost y, outer y). The positions for each
+    /// dimension are:
+    /// - Top right: Ones
+    /// - Top left: Tens
+    /// - Bottom right: Hundreds
+    /// - Bottom left: Thousands
+    pub fn digit_box(&self, position: DigitPosition) -> (usize, usize, usize, usize) {
         let middle = self.size / 2;
         let quart = (middle - self.bottom_margin) / 2;
-        match position {
+        let (up, down) = self.top_bottom();
+
+        let middle_y = match position {
             DigitPosition::Ones => middle - quart,
             DigitPosition::Tens => middle - quart,
             _ => middle + quart,
-        }
+        };
+
+        let end_y = match position {
+            DigitPosition::Ones => up,
+            DigitPosition::Tens => up,
+            _ => down,
+        };
+
+        let end_x = match position {
+            DigitPosition::Ones => middle + quart,
+            DigitPosition::Hundreds => middle + quart,
+            _ => middle - quart,
+        };
+        (middle, end_x, middle_y, end_y)
     }
 }
 
 /// Generate an image with the given parameters and with the given number
 /// in it. The image is generated as an array of floating point numbers between
 /// 0 and 1.
-pub fn generate_image(params: &ImageParams, digits: [u32; 4]) -> Array2<f32> {
+pub fn generate_image(params: &ImageParams, digits: [u32; 4]) -> CResult<Array2<f32>> {
     let mut img = Array2::ones((params.size, params.size));
-    draw_digit(&mut img, params, digits[0], DigitPosition::Thousands);
-    draw_digit(&mut img, params, digits[1], DigitPosition::Hundreds);
-    draw_digit(&mut img, params, digits[2], DigitPosition::Tens);
-    draw_digit(&mut img, params, digits[3], DigitPosition::Ones);
-    img
+
+    // Draw central stave
+    let (top, bottom) = params.top_bottom();
+    let left = params.size / 2 - params.radius();
+    let right = params.size / 2 + params.radius();
+    img.slice_mut(s![top..bottom, left..right]).fill(0.0);
+
+    draw_digit(&mut img, params, digits[0], DigitPosition::Thousands)?;
+    draw_digit(&mut img, params, digits[1], DigitPosition::Hundreds)?;
+    draw_digit(&mut img, params, digits[2], DigitPosition::Tens)?;
+    draw_digit(&mut img, params, digits[3], DigitPosition::Ones)?;
+    Ok(img)
 }
 
 /// Extract the 4 digits from a given number to encode in a glyph
@@ -112,7 +140,47 @@ pub fn draw_digit(
     params: &ImageParams,
     digit: u32,
     position: DigitPosition,
-) {
+) -> CResult<()> {
+    match digit {
+        0 => Ok(()),
+        1 => Ok(draw_1(img, params, position)),
+        2 => Ok(draw_2(img, params, position)),
+        _ => Err(CistercianError::Fail),
+    }
+}
+
+/// Draw digit 1 in the given position
+fn draw_1(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) {
+    let (inx, outx, iny, outy) = params.digit_box(position);
+    let (up, down) = if iny > outy {
+        (outy, outy + params.thickness)
+    } else {
+        (outy - params.thickness, outy)
+    };
+
+    let (l, r) = if inx > outx {
+        (outx, inx - params.radius())
+    } else {
+        (inx + params.radius(), outx)
+    };
+    img.slice_mut(s![up..down, l..r]).fill(0.0);
+}
+
+/// Draw digit 2 in the given position
+fn draw_2(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) {
+    let (inx, outx, iny, outy) = params.digit_box(position);
+    let (up, down) = if iny > outy {
+        (iny, iny + params.thickness)
+    } else {
+        (iny - params.thickness, iny)
+    };
+
+    let (l, r) = if inx > outx {
+        (outx, inx - params.radius())
+    } else {
+        (inx + params.radius(), outx)
+    };
+    img.slice_mut(s![up..down, l..r]).fill(0.0);
 }
 
 #[cfg(test)]
@@ -126,17 +194,17 @@ mod tests {
         let digits = [1, 2, 3, 4];
         let mut params = ImageParams::default();
 
-        let img = generate_image(&params, digits);
+        let img = generate_image(&params, digits).unwrap();
         assert_eq!(img.dim().0, params.size);
         assert_eq!(img.dim().1, params.size);
 
         params.size = 32;
-        let img = generate_image(&params, digits);
+        let img = generate_image(&params, digits).unwrap();
         assert_eq!(img.dim().0, params.size);
         assert_eq!(img.dim().1, params.size);
 
         params.size = 72;
-        let img = generate_image(&params, digits);
+        let img = generate_image(&params, digits).unwrap();
         assert_eq!(img.dim().0, params.size);
         assert_eq!(img.dim().1, params.size);
     }
@@ -144,7 +212,7 @@ mod tests {
     #[test]
     fn test_image_values() {
         let params = ImageParams::default();
-        let img = generate_image(&params, [0, 1, 9, 1]);
+        let img = generate_image(&params, [0, 1, 9, 1]).unwrap();
         let (h, w) = img.dim();
 
         for i in 0..h {

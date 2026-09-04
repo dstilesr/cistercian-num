@@ -2,17 +2,15 @@ use numpy::PyArray2;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
-use crate::CistercianError::InvalidNumber;
-use crate::generate::generate_image;
-
+use super::CistercianError;
 use super::generate;
-use super::{CResult, CistercianError};
 
 impl CistercianError {
     /// Map package Errors into Python error types
     pub fn to_python_error(self) -> PyErr {
         match self {
-            InvalidNumber(_) => PyValueError::new_err(format!("{}", self)),
+            Self::InvalidConfig(s) => PyValueError::new_err(s),
+            _ => PyValueError::new_err(format!("{}", self)),
         }
     }
 }
@@ -32,7 +30,7 @@ pub fn make_image(
         bottom_margin: margin,
     };
     let digits = generate::number_to_digits(number).map_err(|e| e.to_python_error())?;
-    let img = generate::generate_image(&params, digits);
+    let img = generate::generate_image(&params, digits).map_err(|e| e.to_python_error())?;
 
     Ok(PyArray2::from_array(py, &img))
 }
