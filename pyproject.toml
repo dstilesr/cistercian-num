@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Train models to read Cistercian numbers"
 readme = "README.md"
 authors = [
-    { name = "dstilesr", email = "d.stiles.r@hotmail.com" }
+    { name = "dstilesr" }
 ]
 requires-python = ">=3.14"
 dependencies = [
@@ -15,4 +15,9 @@ dependencies = [
 [dependency-groups]
 dev = [
     "jupyterlab>=4.6.3",
+]
+
+[tool.uv.workspace]
+members = [
+    "packages/data_utils",
 ]

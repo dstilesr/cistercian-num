@@ -1,0 +1,25 @@
+[project]
+name = "data-utils"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "dstilesr" }
+]
+requires-python = ">=3.14"
+dependencies = []
+
+[build-system]
+requires = ["maturin>=1,<2"]
+build-backend = "maturin"
+
+[tool.maturin]
+module-name = "data_utils.cistercian"
+generate-stubs = true
+python-source = "python-src"
+features = ["python_binding"]
+
+[dependency-groups]
+dev = [
+    "maturin>=1.15.0,<2",
+]
