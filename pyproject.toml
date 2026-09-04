@@ -21,3 +21,11 @@ dev = [
 members = [
     "packages/data_utils",
 ]
+
+[tool.ruff]
+line-length = 80
+
+[tool.ruff.format]
+quote-style = "double"
+line-ending = "lf"
+indent-style = "space"
