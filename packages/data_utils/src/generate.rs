@@ -7,6 +7,8 @@
 use super::{CResult, CistercianError};
 use ndarray::{Array2, s};
 
+pub mod serialise;
+
 /// Relative tolerance for comparing floats
 const RTOL: f32 = 1e-9;
 
@@ -98,16 +100,15 @@ impl ImageParams {
 }
 
 /// Generate an image with the given parameters and with the given number
-/// in it. The image is generated as an array of floating point numbers between
-/// 0 and 1.
-pub fn generate_image(params: &ImageParams, digits: [u32; 4]) -> CResult<Array2<f32>> {
-    let mut img = Array2::ones((params.size, params.size));
+/// in it. The image is generated as a 2-dimensional array of bytes (Grayscale only).
+pub fn generate_image(params: &ImageParams, digits: [u32; 4]) -> CResult<Array2<u8>> {
+    let mut img = Array2::ones((params.size, params.size)) * 255;
 
     // Draw central stave
     let (top, bottom) = params.top_bottom();
     let left = params.size / 2 - params.radius();
     let right = params.size / 2 + params.radius();
-    img.slice_mut(s![top..bottom, left..right]).fill(0.0);
+    img.slice_mut(s![top..bottom, left..right]).fill(0);
 
     draw_digit(&mut img, params, digits[0], DigitPosition::Thousands)?;
     draw_digit(&mut img, params, digits[1], DigitPosition::Hundreds)?;
@@ -135,7 +136,7 @@ pub fn number_to_digits(number: i32) -> CResult<[u32; 4]> {
 
 /// Draw a digit onto the image at the given position.
 pub fn draw_digit(
-    img: &mut Array2<f32>,
+    img: &mut Array2<u8>,
     params: &ImageParams,
     digit: u32,
     position: DigitPosition,
@@ -176,7 +177,7 @@ pub fn draw_digit(
 }
 
 /// Draw digit 1 in the given position
-fn draw_1(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) {
+fn draw_1(img: &mut Array2<u8>, params: &ImageParams, position: DigitPosition) {
     let (inx, outx, iny, outy) = params.digit_box(position);
     let (up, down) = if iny > outy {
         (outy, outy + params.thickness)
@@ -189,11 +190,11 @@ fn draw_1(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) 
     } else {
         (inx + params.radius(), outx)
     };
-    img.slice_mut(s![up..down, l..r]).fill(0.0);
+    img.slice_mut(s![up..down, l..r]).fill(0);
 }
 
 /// Draw digit 2 in the given position
-fn draw_2(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) {
+fn draw_2(img: &mut Array2<u8>, params: &ImageParams, position: DigitPosition) {
     let (inx, outx, iny, outy) = params.digit_box(position);
     let (up, down) = if iny > outy {
         (iny, iny + params.thickness)
@@ -206,10 +207,10 @@ fn draw_2(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) 
     } else {
         (inx + params.radius(), outx)
     };
-    img.slice_mut(s![up..down, l..r]).fill(0.0);
+    img.slice_mut(s![up..down, l..r]).fill(0);
 }
 
-fn draw_3(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) {
+fn draw_3(img: &mut Array2<u8>, params: &ImageParams, position: DigitPosition) {
     let (inx, outx, iny, outy) = params.digit_box(position);
     let (top, bottom) = params.top_bottom();
     let (miny, maxy) = (top + params.thickness, bottom);
@@ -234,19 +235,19 @@ fn draw_3(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) 
             let mut y_pos = (rx * ly - i * b_num - lx * ry) / denom + 1;
             y_pos = y_pos.max(miny).min(maxy);
             img.slice_mut(s![(y_pos - params.thickness)..y_pos, i])
-                .fill(0.0);
+                .fill(0);
         }
     } else {
         for i in lx..rx {
             let mut y_pos = (i * b_num + rx * ly - lx * ry) / denom + 1;
             y_pos = y_pos.max(miny).min(maxy);
             img.slice_mut(s![(y_pos - params.thickness)..y_pos, i])
-                .fill(0.0);
+                .fill(0);
         }
     }
 }
 
-fn draw_4(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) {
+fn draw_4(img: &mut Array2<u8>, params: &ImageParams, position: DigitPosition) {
     let (inx, outx, iny, outy) = params.digit_box(position);
     let (top, bottom) = params.top_bottom();
     let (miny, maxy) = (top + params.thickness, bottom);
@@ -271,20 +272,20 @@ fn draw_4(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) 
             let mut y_pos = (rx * ly - i * b_num - lx * ry) / denom + 1;
             y_pos = y_pos.max(miny).min(maxy);
             img.slice_mut(s![(y_pos - params.thickness)..y_pos, i])
-                .fill(0.0);
+                .fill(0);
         }
     } else {
         for i in lx..rx {
             let mut y_pos = (i * b_num + rx * ly - lx * ry) / denom + 1;
             y_pos = y_pos.max(miny).min(maxy);
             img.slice_mut(s![(y_pos - params.thickness)..y_pos, i])
-                .fill(0.0);
+                .fill(0);
         }
     }
 }
 
 /// Draw digit 5 in the given position
-fn draw_6(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) {
+fn draw_6(img: &mut Array2<u8>, params: &ImageParams, position: DigitPosition) {
     let (inx, outx, iny, outy) = params.digit_box(position);
     let (up, down) = if iny > outy {
         (outy + params.thickness, iny)
@@ -297,7 +298,7 @@ fn draw_6(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) 
     } else {
         (outx - params.thickness, outx)
     };
-    img.slice_mut(s![up..down, l..r]).fill(0.0);
+    img.slice_mut(s![up..down, l..r]).fill(0);
 }
 
 #[cfg(test)]
@@ -334,8 +335,8 @@ mod tests {
 
         for i in 0..h {
             for j in 0..w {
-                assert!(img[[i, j]] >= 0.0);
-                assert!(img[[i, j]] <= 1.0);
+                assert!(img[[i, j]] >= 0);
+                assert!(img[[i, j]] <= 255);
             }
         }
     }

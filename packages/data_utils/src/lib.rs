@@ -10,6 +10,7 @@ pub mod python_binding;
 pub enum CistercianError {
     InvalidNumber(i32),
     InvalidConfig(String),
+    SerialisationError(String),
     Fail,
 }
 
@@ -19,6 +20,7 @@ impl Display for CistercianError {
             Self::InvalidNumber(n) => write!(f, "Cannot encode the given number {}", n),
             Self::InvalidConfig(s) => write!(f, "{s}"),
             Self::Fail => write!(f, "Failed to perform operation!"),
+            Self::SerialisationError(s) => write!(f, "{s}"),
         }
     }
 }
