@@ -2,7 +2,6 @@ use image::GrayImage;
 use ndarray::Array2;
 
 use super::super::{CResult, CistercianError};
-use super::*;
 
 /// Save an image (given as array) to a file.
 pub fn save_to_file(image: Array2<u8>, filepath: &str) -> CResult<()> {

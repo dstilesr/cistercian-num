@@ -26,7 +26,7 @@ pub fn make_image(
     number: i32,
 ) -> PyResult<Bound<PyArray2<u8>>> {
     let params = generate::ImageParams {
-        size: size,
+        size,
         thickness: line_thickness,
         bottom_margin: margin,
     };
@@ -46,7 +46,7 @@ pub fn generate_and_save_image(
     filepath: String,
 ) -> PyResult<()> {
     let params = generate::ImageParams {
-        size: size,
+        size,
         thickness: line_thickness,
         bottom_margin: margin,
     };

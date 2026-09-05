@@ -143,16 +143,31 @@ pub fn draw_digit(
 ) -> CResult<()> {
     match digit {
         0 => Ok(()),
-        1 => Ok(draw_1(img, params, position)),
-        2 => Ok(draw_2(img, params, position)),
-        3 => Ok(draw_3(img, params, position)),
-        4 => Ok(draw_4(img, params, position)),
+        1 => {
+            draw_1(img, params, position);
+            Ok(())
+        }
+        2 => {
+            draw_2(img, params, position);
+            Ok(())
+        }
+        3 => {
+            draw_3(img, params, position);
+            Ok(())
+        }
+        4 => {
+            draw_4(img, params, position);
+            Ok(())
+        }
         5 => {
             draw_4(img, params, position);
             draw_1(img, params, position);
             Ok(())
         }
-        6 => Ok(draw_6(img, params, position)),
+        6 => {
+            draw_6(img, params, position);
+            Ok(())
+        }
         7 => {
             draw_1(img, params, position);
             draw_6(img, params, position);
@@ -325,20 +340,6 @@ mod tests {
         let img = generate_image(&params, digits).unwrap();
         assert_eq!(img.dim().0, params.size);
         assert_eq!(img.dim().1, params.size);
-    }
-
-    #[test]
-    fn test_image_values() {
-        let params = ImageParams::default();
-        let img = generate_image(&params, [0, 1, 9, 1]).unwrap();
-        let (h, w) = img.dim();
-
-        for i in 0..h {
-            for j in 0..w {
-                assert!(img[[i, j]] >= 0);
-                assert!(img[[i, j]] <= 255);
-            }
-        }
     }
 
     #[test]
