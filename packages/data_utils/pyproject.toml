@@ -1,7 +1,7 @@
 [project]
 name = "data-utils"
 version = "0.1.0"
-description = "Add your description here"
+description = "Utilities for loading and manipulating the image data"
 readme = "README.md"
 authors = [
     { name = "dstilesr" }

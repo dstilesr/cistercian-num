@@ -1,0 +1,3 @@
+import numpy as np
+
+def make_image(size: int, line_thickness: int, margin: int, number: int) -> np.ndarray: ...

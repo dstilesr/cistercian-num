@@ -4,9 +4,7 @@
 //! to augment this with real data (drawings, handwritten examples). The glyphs will be grayscale
 //! images represented as 2D arrays of floating point numbers between 0 (black) and 1 (white).
 
-use crate::CResult;
-
-use super::CistercianError;
+use super::{CResult, CistercianError};
 use ndarray::{Array2, s};
 
 /// Relative tolerance for comparing floats
@@ -146,6 +144,13 @@ pub fn draw_digit(
         0 => Ok(()),
         1 => Ok(draw_1(img, params, position)),
         2 => Ok(draw_2(img, params, position)),
+        3 => Ok(draw_3(img, params, position)),
+        4 => Ok(draw_4(img, params, position)),
+        5 => {
+            draw_4(img, params, position);
+            draw_1(img, params, position);
+            Ok(())
+        }
         6 => Ok(draw_6(img, params, position)),
         7 => {
             draw_1(img, params, position);
@@ -163,7 +168,10 @@ pub fn draw_digit(
             draw_6(img, params, position);
             Ok(())
         }
-        _ => Err(CistercianError::Fail),
+        _ => {
+            log::error!("Invalid digit for encoding: {}", digit);
+            Err(CistercianError::Fail)
+        }
     }
 }
 
@@ -199,6 +207,80 @@ fn draw_2(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) 
         (inx + params.radius(), outx)
     };
     img.slice_mut(s![up..down, l..r]).fill(0.0);
+}
+
+fn draw_3(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) {
+    let (inx, outx, iny, outy) = params.digit_box(position);
+    let (top, bottom) = params.top_bottom();
+    let (miny, maxy) = (top + params.thickness, bottom);
+
+    // Line: (outy, inx) to (iny, outx) Denominator for parameters of
+    // y = a * x + b expression of line
+    let (lx, ly, rx, ry) = if inx < outx {
+        (inx, outy, outx, iny)
+    } else {
+        (outx, iny, inx, outy)
+    };
+
+    let denom = rx - lx;
+    let (b_num, subtract) = if ry < ly {
+        (ly - ry, true)
+    } else {
+        (ry - ly, false)
+    };
+
+    if subtract {
+        for i in lx..rx {
+            let mut y_pos = (rx * ly - i * b_num - lx * ry) / denom + 1;
+            y_pos = y_pos.max(miny).min(maxy);
+            img.slice_mut(s![(y_pos - params.thickness)..y_pos, i])
+                .fill(0.0);
+        }
+    } else {
+        for i in lx..rx {
+            let mut y_pos = (i * b_num + rx * ly - lx * ry) / denom + 1;
+            y_pos = y_pos.max(miny).min(maxy);
+            img.slice_mut(s![(y_pos - params.thickness)..y_pos, i])
+                .fill(0.0);
+        }
+    }
+}
+
+fn draw_4(img: &mut Array2<f32>, params: &ImageParams, position: DigitPosition) {
+    let (inx, outx, iny, outy) = params.digit_box(position);
+    let (top, bottom) = params.top_bottom();
+    let (miny, maxy) = (top + params.thickness, bottom);
+
+    // Line: (iny, inx) to (outy, outx) Denominator for parameters of
+    // y = a * x + b expression of line
+    let (lx, ly, rx, ry) = if inx < outx {
+        (inx, iny, outx, outy)
+    } else {
+        (outx, outy, inx, iny)
+    };
+
+    let denom = rx - lx;
+    let (b_num, subtract) = if ry < ly {
+        (ly - ry, true)
+    } else {
+        (ry - ly, false)
+    };
+
+    if subtract {
+        for i in lx..rx {
+            let mut y_pos = (rx * ly - i * b_num - lx * ry) / denom + 1;
+            y_pos = y_pos.max(miny).min(maxy);
+            img.slice_mut(s![(y_pos - params.thickness)..y_pos, i])
+                .fill(0.0);
+        }
+    } else {
+        for i in lx..rx {
+            let mut y_pos = (i * b_num + rx * ly - lx * ry) / denom + 1;
+            y_pos = y_pos.max(miny).min(maxy);
+            img.slice_mut(s![(y_pos - params.thickness)..y_pos, i])
+                .fill(0.0);
+        }
+    }
 }
 
 /// Draw digit 5 in the given position
