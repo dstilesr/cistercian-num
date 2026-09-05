@@ -2,6 +2,31 @@ use image::GrayImage;
 use ndarray::Array2;
 
 use super::super::{CResult, CistercianError};
+use super::*;
+
+/// Generate prototype images for the given numerals and save them to the given directory.
+pub fn generate_prototypes(numbers: Vec<i32>, params: &ImageParams, base_dir: &str) -> CResult<()> {
+    let dirpath = std::path::Path::new(base_dir);
+    if !dirpath.is_dir() {
+        return Err(CistercianError::SerialisationError(format!(
+            "The path '{}' is not a directory!",
+            dirpath.to_str().unwrap_or("<>")
+        )));
+    }
+    log::info!(
+        "Generating {} numeral images to directory '{}'",
+        numbers.len(),
+        base_dir
+    );
+    for number in numbers {
+        let digits = number_to_digits(number)?;
+        let array = generate_image(params, digits)?;
+        let out_path = dirpath.join(format!("{:04}.png", number));
+        let fp = out_path.to_str().ok_or(CistercianError::Fail)?;
+        save_to_file(array, fp)?;
+    }
+    Ok(())
+}
 
 /// Save an image (given as array) to a file.
 pub fn save_to_file(image: Array2<u8>, filepath: &str) -> CResult<()> {

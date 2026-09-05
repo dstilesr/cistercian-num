@@ -55,6 +55,24 @@ pub fn generate_and_save_image(
     generate::serialise::save_to_file(img, &filepath).map_err(|e| e.to_python_error())
 }
 
+/// Save batch of images of numerals in a folder.
+#[pyfunction]
+pub fn save_images_batch(
+    size: usize,
+    line_thickness: usize,
+    margin: usize,
+    numbers: Vec<i32>,
+    dir_path: String,
+) -> PyResult<()> {
+    let params = generate::ImageParams {
+        size,
+        thickness: line_thickness,
+        bottom_margin: margin,
+    };
+    generate::serialise::generate_prototypes(numbers, &params, &dir_path)
+        .map_err(|e| e.to_python_error())
+}
+
 /// Generate two lists of numbers to use for training and test, respectively.
 #[pyfunction]
 #[pyo3(signature = (test_proportion: "float") -> "tuple[list[int], list[int]]")]
@@ -94,7 +112,7 @@ pub mod cistercian {
     use pyo3::prelude::*;
 
     #[pymodule_export]
-    use super::{generate_and_save_image, make_image, train_test_numbers};
+    use super::{generate_and_save_image, make_image, save_images_batch, train_test_numbers};
 
     /// Module initialization - setup Python logging integration
     #[pymodule_init]

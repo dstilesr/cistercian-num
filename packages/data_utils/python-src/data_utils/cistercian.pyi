@@ -9,3 +9,10 @@ def train_test_numbers(
 def generate_and_save_image(
     size: int, line_thickness: int, margin: int, number: int, filepath: str
 ) -> None: ...
+def save_images_batch(
+    size: int,
+    line_thickness: int,
+    margin: int,
+    numbers: list[int],
+    dir_path: str,
+) -> None: ...

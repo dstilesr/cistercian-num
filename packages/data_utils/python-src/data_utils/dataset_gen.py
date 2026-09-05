@@ -1,7 +1,6 @@
 from pathlib import Path
-from random import shuffle
 
-from .cistercian import make_image, train_test_numbers
+from .cistercian import save_images_batch, train_test_numbers
 
 
 def split_numbers(
@@ -36,5 +35,47 @@ def split_numbers(
     return train, test
 
 
-def train_dataset():
-    pass
+def generate_dataset(
+    save_to: Path,
+    size: int = 96,
+    margin: int = 6,
+    line_thickness: int = 3,
+    test_proportion: float = 0.075,
+):
+    """
+    Generate dataset for training the model. This is only a starter with
+    "prototype" starter images, but it serves to get started with examples.
+    :param save_to: Directory to save in.
+    :param size: Image width (images will be squares).
+    :param margin:
+    :param line_thickness:
+    :param test_proportion: Proportion of examples to put in test set.
+    """
+    if save_to.exists():
+        if not save_to.is_dir():
+            raise FileExistsError(
+                f"The path {save_to} existis and is not a directory!"
+            )
+    else:
+        save_to.mkdir(parents=True, exist_ok=True)
+
+    train_nums, test_nums = split_numbers(test_proportion)
+    train_dir = save_to / "train"
+    train_dir.mkdir(exist_ok=True)
+    save_images_batch(
+        size=size,
+        line_thickness=line_thickness,
+        margin=margin,
+        numbers=train_nums,
+        dir_path=str(train_dir),
+    )
+
+    test_dir = save_to / "test"
+    test_dir.mkdir(exist_ok=True)
+    save_images_batch(
+        size=size,
+        line_thickness=line_thickness,
+        margin=margin,
+        numbers=test_nums,
+        dir_path=str(test_dir),
+    )
