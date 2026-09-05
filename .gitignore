@@ -224,6 +224,8 @@ __marimo__/
 
 /target
 
+**/data/
+
 
 # Added by cargo
 #
