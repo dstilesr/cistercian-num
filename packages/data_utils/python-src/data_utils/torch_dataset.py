@@ -176,7 +176,7 @@ class CistercianDataset(VisionDataset):
             raise ValueError("Filepath does not match expected pattern!")
 
         number = int(pattern.group(1))
-        y = torch.from_numpy(number_to_digits(number))
+        y = torch.from_numpy(number_to_digits(number)).to(torch.long)
         x = torchvision.io.decode_image(str(fp))
         if self.transform:
             x = self.transform(x)

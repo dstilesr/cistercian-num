@@ -135,6 +135,9 @@ class ConvolutionalModel(nn.Module):
                 case "sigmoid":
                     layers.append(nn.Sigmoid())
 
+            if lyr_cfg.normalise:
+                layers.append(nn.LayerNorm(normalized_shape=lyr_cfg.output_dim))
+
             if lyr_cfg.add_dropout and i < (len(settings.linear_layers) - 1):
                 # Do not add dropout to head
                 layers.append(nn.Dropout(p=settings.dropout))

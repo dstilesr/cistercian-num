@@ -14,6 +14,10 @@ def run_training(model: nn.Module, cfg: TrainingSettings) -> nn.Module:
     """
     Run the model training loop and return the trained model
     """
+    cfg.save_to.mkdir(parents=True, exist_ok=True)
+    logger.info(
+        "Starting training run. Checkpoints will be saved to %s", cfg.save_to
+    )
     model.train()
 
     # Prepare data loaders
@@ -40,6 +44,7 @@ def run_training(model: nn.Module, cfg: TrainingSettings) -> nn.Module:
             *metrics,
         )
 
+    torch.save(model.state_dict(), cfg.save_to / f"{type(model).__name__}.pth")
     return model
 
 
@@ -104,10 +109,10 @@ def run_evaluation(
             loss = loss_fn(logits, y)
             loss_accum += loss.item()
 
-            labels = torch.argmax(logits, dim=1).to(torch.uint32)
+            labels = torch.argmax(logits, dim=1).to(torch.long)
             correct = torch.sum(torch.where(labels == y, 1, 0)).item()
             total_correct += correct
-            total_examples += y.shape[0]
+            total_examples += y.shape[0] * 4
 
     if eval_mode:
         model.train()
