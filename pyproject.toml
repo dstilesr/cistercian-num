@@ -20,6 +20,7 @@ dev = [
 [tool.uv.workspace]
 members = [
     "packages/data_utils",
+    "packages/models",
 ]
 
 [tool.ruff]
