@@ -33,8 +33,8 @@ def test_forward_pass(model_test_cfg):
         out = model(inputs)
         assert len(out.shape) == 3
         assert out.shape[0] == 5
-        assert out.shape[1] == 4
-        assert out.shape[2] == 10
+        assert out.shape[1] == 10
+        assert out.shape[2] == 4
 
 
 def test_classification(model_test_cfg):
@@ -49,12 +49,12 @@ def test_classification(model_test_cfg):
         inputs = torch.rand((31, 1, 32, 32), dtype=torch.float32)
         probas = model.get_digits(inputs, probabilities=True)
 
-        assert probas.shape == (31, 4, 10)
+        assert probas.shape == (31, 10, 4)
         probas = probas.numpy()
-        sums = probas.sum(axis=2)
+        sums = probas.sum(axis=1)
         assert np.allclose(sums, 1.0)
 
-        labels_1 = probas.argmax(axis=2).astype(np.uint32)
+        labels_1 = probas.argmax(axis=1).astype(np.uint32)
         labels_2 = model.get_digits(inputs, probabilities=False).numpy()
 
         assert np.all(labels_1 == labels_2)

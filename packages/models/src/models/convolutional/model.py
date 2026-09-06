@@ -21,14 +21,15 @@ class ConvolutionalModel(nn.Module):
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         """
         Perform forward pass on the data and return the logits for the
-        digits in the images.
+        digits in the images. Output is shaped to work well with torch's
+        CrossEntropy loss for multidimensional outputs.
 
         Input dimension: (batch size, channels, img_size, img_size)
-        Output dimension: (batch size, 4, 10)
+        Output dimension: (batch size, 10, 4)
         """
         x = self.conv_block(inputs)
         x = self.lin_block(x)
-        x = torch.reshape(x, (x.shape[0], 4, 10))
+        x = torch.reshape(x, (x.shape[0], 10, 4))
         return x
 
     def get_digits(
@@ -40,14 +41,14 @@ class ConvolutionalModel(nn.Module):
 
         Input dimension: (batch size, channels, img_size, img_size)
         Output dimension: (batch size, 4) if probabilities is false, otherwise
-            (batch size, 4, 10)
+            (batch size, 10, 4)
         """
         logits = self.forward(inputs)
-        probs = torch.softmax(logits, dim=2)
+        probs = torch.softmax(logits, dim=1)
         if probabilities:
             return probs
 
-        labels = probs.argmax(dim=2).to(torch.uint32)
+        labels = probs.argmax(dim=1).to(torch.uint32)
         return labels
 
     @staticmethod

@@ -14,6 +14,7 @@ class ConvLayerSettings(BaseModel):
     stride: tuple[int, int] = (1, 1)
     add_padding: bool = True
     add_dropout: bool = True
+    normalise: bool = False
 
     pool_type: Literal["average", "max"] = "max"
     pool_kernel_size: tuple[int, int] = (2, 2)
@@ -30,6 +31,7 @@ class LinearLayerSettings(BaseModel):
     input_dim: int = Field(default=64, gt=0)
     output_dim: int = Field(default=64, gt=0)
     add_dropout: bool = True
+    normalise: bool = False
     activation: Literal["linear", "relu", "gelu", "tanh", "sigmoid"] = "relu"
 
 
