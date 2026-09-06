@@ -1,3 +1,4 @@
+use numpy::PyArray1;
 use numpy::PyArray2;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -34,6 +35,14 @@ pub fn make_image(
     let img = generate::generate_image(&params, digits).map_err(|e| e.to_python_error())?;
 
     Ok(PyArray2::from_array(py, &img))
+}
+
+/// Get the digits of a number as a numpy array.
+#[pyfunction]
+pub fn number_to_digits(py: Python, number: i32) -> PyResult<Bound<PyArray1<u32>>> {
+    let digits = generate::number_to_digits(number).map_err(|e| e.to_python_error())?;
+    let arr = PyArray1::from_slice(py, &digits);
+    Ok(arr)
 }
 
 /// Generate an image of a numeral and save it at the given filepath.
@@ -112,7 +121,10 @@ pub mod cistercian {
     use pyo3::prelude::*;
 
     #[pymodule_export]
-    use super::{generate_and_save_image, make_image, save_images_batch, train_test_numbers};
+    use super::{
+        generate_and_save_image, make_image, number_to_digits, save_images_batch,
+        train_test_numbers,
+    };
 
     /// Module initialization - setup Python logging integration
     #[pymodule_init]
