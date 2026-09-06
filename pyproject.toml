@@ -15,6 +15,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "jupyterlab>=4.6.3",
+    "pytest>=9,<10",
 ]
 
 [tool.uv.workspace]

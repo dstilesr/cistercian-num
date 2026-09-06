@@ -22,3 +22,11 @@ build-backend = "uv_build"
 
 [tool.uv.sources]
 data-utils = { workspace = true }
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "src"
+]
+testpaths = [
+    "tests"
+]

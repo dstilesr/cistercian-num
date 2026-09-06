@@ -1,0 +1,28 @@
+{
+  "dtype": "float32",
+  "dropout": 0.1,
+  "conv_layers": [
+    {
+      "input_channels": 1,
+      "output_channels": 2,
+      "add_padding": true
+    },
+    {
+      "input_channels": 2,
+      "output_channels": 4,
+      "add_padding": true
+    }
+  ],
+  "linear_layers": [
+    {
+      "input_dim": 256,
+      "output_dim": 128,
+      "activation": "relu"
+    },
+    {
+      "input_dim": 128,
+      "output_dim": 40,
+      "activation": "linear"
+    }
+  ]
+}
