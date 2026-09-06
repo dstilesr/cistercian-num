@@ -101,7 +101,7 @@ from data_utils.torch_dataset import get_train_test_datasets, PerturbationConfig
 
 image_size = 128
 
-# This path must have a 'train' and a 'test' directory following the 
+# This path must have a 'train' and a 'test' directory following the
 # conventions above.
 data_path = Path("data").resolve()
 
@@ -117,5 +117,5 @@ train_ds, test_ds = get_train_test_datasets(
 
 # Check a distorted image
 image, label = train_ds[123]
-plt.imshow(image[0, :, :], cmap="gray");
+plt.imshow(image[0, :, :], cmap="gray")
 ```

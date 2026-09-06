@@ -44,7 +44,9 @@ def run_training(model: nn.Module, cfg: TrainingSettings) -> nn.Module:
             *metrics,
         )
 
-    torch.save(model.state_dict(), cfg.save_to / f"{type(model).__name__}.pth")
+    torch.save(
+        model.state_dict(), cfg.save_to / f"{type(model).__name__}-final.pth"
+    )
     return model
 
 

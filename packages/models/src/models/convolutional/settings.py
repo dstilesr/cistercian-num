@@ -42,6 +42,7 @@ class ModelSettings(BaseModel):
 
     dtype: Literal["float16", "bfloat16", "float32", "float64"] = "float32"
     dropout: float = Field(default=0.1, ge=0.0, lt=1.0)
+    input_image_size: int = Field(default=128, gt=0)
 
     conv_layers: list[ConvLayerSettings]
     linear_layers: list[LinearLayerSettings] = Field(min_length=1)

@@ -37,5 +37,16 @@ def train_convolutional(model_cfg: Path, train_cfg: Path | None = None):
     with model_cfg.open("r") as f:
         model_settings = conv.ModelSettings.model_validate_json(f.read())
 
+    if model_settings.input_image_size != train_settings.image_size:
+        raise ValueError(
+            "Model's expected image size does not match the dataset!"
+        )
+
     model = conv.ConvolutionalModel(model_settings)
     run_training(model, train_settings)
+
+    with open(train_settings.save_to / "model-config.json", "w") as f:
+        f.write(model_settings.model_dump_json(indent=2))
+
+    with open(train_settings.save_to / "train-config.json", "w") as f:
+        f.write(train_settings.model_dump_json(indent=2))
