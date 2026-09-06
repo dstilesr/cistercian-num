@@ -19,7 +19,13 @@ The repository is structured as follows:
   - data_utils: This contains utilities to generate the image data and the PyTorch datasets to handle it. Part of
     this module is written in Rust.
   - models: This contains code to instantiate the Machine Learning models used, as well as the code to run the training loop.
+  - visualise: This is a basic streamlit visualisation module to experiment reading  your own files with the model.
 ```
+
+You can learn more about the sub packages in their respective directories:
+- [Data Utilities](./packages/data_utils)
+- [Modelling](./packages/models)
+- [Visualisation](./packages/visualise)
 
 ## Setup
 In order to set this up, you must first have the following already configured in your computer:

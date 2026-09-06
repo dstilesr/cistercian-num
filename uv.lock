@@ -538,6 +538,7 @@ name = "data-utils"
 version = "0.1.0"
 source = { editable = "packages/data_utils" }
 dependencies = [
+    { name = "pydantic" },
     { name = "torch" },
     { name = "torchvision" },
 ]
@@ -549,6 +550,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "pydantic", specifier = ">=2,<3" },
     { name = "torch", specifier = ">=2,<3" },
     { name = "torchvision", specifier = ">=0.29.0" },
 ]

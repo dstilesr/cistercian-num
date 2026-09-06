@@ -1,6 +1,5 @@
 import re
-from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from collections.abc import Callable
 from functools import cached_property
 from numbers import Number
 from pathlib import Path
@@ -8,6 +7,7 @@ from typing import cast
 
 import torch
 import torchvision.io
+from pydantic import BaseModel
 from torchvision.datasets import VisionDataset
 from torchvision.transforms.v2 import (
     Compose,
@@ -55,8 +55,7 @@ def get_train_test_datasets(
     return train, test
 
 
-@dataclass(slots=True, frozen=True, kw_only=True)
-class PerturbationConfig:
+class PerturbationConfig(BaseModel):
     """
     Configuration to create perturbations to add noise to images while
     training.
@@ -67,12 +66,12 @@ class PerturbationConfig:
     noise_mean: float = 0.0
 
     add_affine_transforms: bool = True
-    rotation_degrees: float | Number = 15.0
+    rotation_degrees: float = 15.0
     translation: tuple[float, float] | None = (0.025, 0.025)
     shear: float | tuple[float, float] | None = 3.0
 
     add_gaussian_blur: bool = True
-    blur_kernel_size: int | Sequence[int] = 3
+    blur_kernel_size: int | list[int] = 3
     blur_sigma: float | tuple[float, float] = (0.1, 2.0)
 
     def make_transform(self) -> Transform:

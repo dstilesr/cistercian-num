@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from data_utils.torch_dataset import PerturbationConfig
 from pydantic import BaseModel, Field
 
 from ..constants import DEFAULT_DATA_PATH
@@ -16,3 +17,6 @@ class TrainingSettings(BaseModel):
     dataset_path: Path = DEFAULT_DATA_PATH
     image_size: int = Field(gt=0, default=128)
     batch_size: int = Field(gt=0, default=32)
+    data_perturbation: PerturbationConfig = Field(
+        default_factory=PerturbationConfig
+    )

@@ -1,4 +1,9 @@
 {
-  "learning_rate": 0.004,
-  "epochs": 10
+  "learning_rate": 0.001,
+  "epochs": 10,
+  "data_perturbation": {
+    "rotation_degrees": 22.0,
+    "noise_std_dev": 0.15,
+    "blur_sigma": [0.25, 2.0]
+  }
 }

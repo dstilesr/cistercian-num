@@ -22,7 +22,9 @@ def run_training(model: nn.Module, cfg: TrainingSettings) -> nn.Module:
 
     # Prepare data loaders
     train_set, test_set = get_train_test_datasets(
-        cfg.dataset_path, image_size=cfg.image_size
+        cfg.dataset_path,
+        image_size=cfg.image_size,
+        perturb_cfg=cfg.data_perturbation,
     )
     train_loader = torch.utils.data.DataLoader(
         train_set, shuffle=True, batch_size=cfg.batch_size
