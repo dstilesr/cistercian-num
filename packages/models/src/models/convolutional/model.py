@@ -31,6 +31,25 @@ class ConvolutionalModel(nn.Module):
         x = torch.reshape(x, (x.shape[0], 4, 10))
         return x
 
+    def get_digits(
+        self, inputs: torch.Tensor, probabilities: bool = False
+    ) -> torch.Tensor:
+        """
+        Perform prediction on the given inputs. Classify the digits and return
+        their predicted labels or probabilities.
+
+        Input dimension: (batch size, channels, img_size, img_size)
+        Output dimension: (batch size, 4) if probabilities is false, otherwise
+            (batch size, 4, 10)
+        """
+        logits = self.forward(inputs)
+        probs = torch.softmax(logits, dim=2)
+        if probabilities:
+            return probs
+
+        labels = probs.argmax(dim=2).to(torch.uint32)
+        return labels
+
     @staticmethod
     def _make_conv_block(
         settings: ModelSettings, dtype: torch.dtype
