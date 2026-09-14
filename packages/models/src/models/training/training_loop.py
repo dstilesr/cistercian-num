@@ -1,5 +1,6 @@
 import logging
 
+import mlflow
 import torch
 from data_utils.torch_dataset import get_train_test_datasets
 from torch import nn
@@ -20,6 +21,13 @@ def run_training(model: nn.Module, cfg: TrainingSettings) -> nn.Module:
     )
     model.train()
 
+    track_uri = cfg.tracking_cfg.mlflow_path
+    if not track_uri.parent.exists():
+        track_uri.mkdir(parents=True)
+
+    mlflow.set_tracking_uri(f"sqlite://{track_uri!s}")
+    mlflow.set_experiment(cfg.tracking_cfg.experiment_name)
+
     # Prepare data loaders
     train_set, test_set = get_train_test_datasets(
         cfg.dataset_path,
@@ -34,21 +42,34 @@ def run_training(model: nn.Module, cfg: TrainingSettings) -> nn.Module:
     )
 
     # Prepare optimiser
-    optimiser = torch.optim.Adam(model.parameters(), lr=cfg.learning_rate)
-    for epoch in range(cfg.epochs):
-        logger.info("Starting epoch (%d / %d)", epoch + 1, cfg.epochs)
-        run_epoch(model, train_loader, optimiser)
+    with mlflow.start_run():
+        mlflow.log_param(key="learning_rate", value=cfg.learning_rate)
+        mlflow.log_param(key="epochs", value=cfg.epochs)
 
-        logger.info("Starting evaluation run")
-        metrics = run_evaluation(model, test_loader)
-        logger.info(
-            "Evaluation done! Avg Validation Loss=%.5f - Accuracy=%.4f",
-            *metrics,
+        optimiser = torch.optim.Adam(model.parameters(), lr=cfg.learning_rate)
+        steps = 0
+        for epoch in range(cfg.epochs):
+            logger.info("Starting epoch (%d / %d)", epoch + 1, cfg.epochs)
+            steps += run_epoch(model, train_loader, optimiser)
+
+            logger.info("Starting evaluation run")
+            eval_loss, eval_accuracy = run_evaluation(model, test_loader)
+
+            mlflow.log_metric(key="eval_loss", value=eval_loss, step=steps)
+            mlflow.log_metric(
+                key="eval_accuracy", value=eval_accuracy, step=steps
+            )
+
+            logger.info(
+                "Evaluation done! Avg Validation Loss=%.5f - Accuracy=%.4f",
+                eval_loss,
+                eval_accuracy,
+            )
+
+        torch.save(
+            model.state_dict(),
+            cfg.save_to / f"{type(model).__name__}-final.pth",
         )
-
-    torch.save(
-        model.state_dict(), cfg.save_to / f"{type(model).__name__}-final.pth"
-    )
     return model
 
 
@@ -56,7 +77,7 @@ def run_epoch(
     model: nn.Module,
     train_data: torch.utils.data.DataLoader,
     optimiser: torch.optim.Optimizer,
-):
+) -> int:
     """
     Run a full epoch on the training data.
     """
@@ -87,7 +108,7 @@ def run_epoch(
         batch,
         avg_loss,
     )
-    return model
+    return batch
 
 
 def run_evaluation(
