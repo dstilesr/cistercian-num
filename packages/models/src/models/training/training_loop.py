@@ -25,7 +25,7 @@ def run_training(model: nn.Module, cfg: TrainingSettings) -> nn.Module:
     if not track_uri.parent.exists():
         track_uri.mkdir(parents=True)
 
-    mlflow.set_tracking_uri(f"sqlite://{track_uri!s}")
+    mlflow.set_tracking_uri(f"sqlite:///{track_uri!s}")
     mlflow.set_experiment(cfg.tracking_cfg.experiment_name)
 
     # Prepare data loaders
@@ -45,12 +45,13 @@ def run_training(model: nn.Module, cfg: TrainingSettings) -> nn.Module:
     with mlflow.start_run():
         mlflow.log_param(key="learning_rate", value=cfg.learning_rate)
         mlflow.log_param(key="epochs", value=cfg.epochs)
+        mlflow.log_param(key="batch-size", value=cfg.batch_size)
 
         optimiser = torch.optim.Adam(model.parameters(), lr=cfg.learning_rate)
         steps = 0
         for epoch in range(cfg.epochs):
             logger.info("Starting epoch (%d / %d)", epoch + 1, cfg.epochs)
-            steps += run_epoch(model, train_loader, optimiser)
+            steps += run_epoch(model, train_loader, optimiser, steps)
 
             logger.info("Starting evaluation run")
             eval_loss, eval_accuracy = run_evaluation(model, test_loader)
@@ -77,6 +78,7 @@ def run_epoch(
     model: nn.Module,
     train_data: torch.utils.data.DataLoader,
     optimiser: torch.optim.Optimizer,
+    prev_steps: int = 0,
 ) -> int:
     """
     Run a full epoch on the training data.
@@ -96,6 +98,9 @@ def run_epoch(
         optimiser.step()
         loss_num = loss.item()
         accum_loss += loss_num
+        mlflow.log_metric(
+            key="train_loss", value=loss_num, step=prev_steps + batch
+        )
 
         if batch % 100 == 0:
             logger.info(
