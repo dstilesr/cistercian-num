@@ -1,0 +1,5 @@
+version: "3"
+tasks:
+  start-mlflow:
+    dir: "data/mlflow"
+    cmd: uv run mlflow server
